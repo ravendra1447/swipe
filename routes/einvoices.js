@@ -1,28 +1,33 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database');
+const authenticateToken = require('../middleware/auth');
 
-router.get('/', (req, res) => {
-  db.query('SELECT * FROM einvoices', (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
+router.use(authenticateToken);
+
+router.get('/', async (req, res) => {
+  try {
+    const [results] = await db.execute('SELECT * FROM einvoices WHERE user_id = ?', [req.user.id]);
     res.json(results);
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-router.post('/', (req, res) => {
-  const { invoice_number, status } = req.body;
-  const sql = 'INSERT INTO einvoices (invoice_number, status) VALUES (?, ?)';
-  db.query(sql, [invoice_number, status], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
+router.post('/', async (req, res) => {
+  try {
+    const { invoice_number, status } = req.body;
+    const sql = 'INSERT INTO einvoices (user_id, invoice_number, status) VALUES (?, ?, ?)';
+    const [result] = await db.execute(sql, [req.user.id, invoice_number, status]);
     res.status(201).json({ id: result.insertId, invoice_number, status });
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-module.exports = router;
-
-router.get('/:id/pdf', (req, res) => {
-  db.query('SELECT * FROM einvoices WHERE id=?', [req.params.id], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
+router.get('/:id/pdf', async (req, res) => {
+  try {
+    const [results] = await db.execute('SELECT * FROM einvoices WHERE id=? AND user_id=?', [req.params.id, req.user.id]);
     const bill = results[0];
     if (!bill) return res.status(404).send('E-Invoice not found');
     
@@ -66,5 +71,9 @@ router.get('/:id/pdf', (req, res) => {
     
     generateInvoicePDF(doc, pdfData);
     doc.end();
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
+
+module.exports = router;

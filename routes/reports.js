@@ -1,14 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database');
+const authenticateToken = require('../middleware/auth');
+
+router.use(authenticateToken);
 
 router.get('/gstr1', async (req, res) => {
   try {
     const { tab } = req.query;
-    let query = "SELECT * FROM gstr1_records";
-    let params = [];
+    let query = "SELECT * FROM gstr1_records WHERE user_id = ?";
+    let params = [req.user.id];
+    
     if (tab) {
-      query += " WHERE tab_type = ?";
+      query += " AND tab_type = ?";
       params.push(tab);
     }
     

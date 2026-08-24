@@ -1,10 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database');
+const authenticateToken = require('../middleware/auth');
+
+router.use(authenticateToken);
 
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await db.execute("SELECT * FROM transactions");
+    const [rows] = await db.execute("SELECT * FROM transactions WHERE user_id = ?", [req.user.id]);
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -15,8 +18,8 @@ router.post('/', async (req, res) => {
   try {
     const { name, invoice, date, amount, status, by_user, hasWhatsapp, items } = req.body;
     const [result] = await db.execute(
-      "INSERT INTO transactions (name, invoice, date, amount, status, by_user, hasWhatsapp) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [name, invoice, date, amount, status, by_user, hasWhatsapp]
+      "INSERT INTO transactions (user_id, name, invoice, date, amount, status, by_user, hasWhatsapp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [req.user.id, name, invoice, date, amount, status, by_user, hasWhatsapp]
     );
     
     const transactionId = result.insertId;
@@ -25,7 +28,7 @@ router.post('/', async (req, res) => {
       for (const item of items) {
         if (item.id) {
           try {
-            await db.execute("UPDATE product_details SET quantity = quantity - ? WHERE product_id = ?", [item.qty || 1, item.id]);
+            await db.execute("UPDATE product_details SET quantity = quantity - ? WHERE product_id = ? AND user_id = ?", [item.qty || 1, item.id, req.user.id]);
           } catch (updateErr) {
             console.error('Failed to update inventory for item', item.id, updateErr);
           }
@@ -41,8 +44,8 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { name, invoice, date, amount, status, by_user, hasWhatsapp } = req.body;
-    await db.execute("UPDATE transactions SET name=?, invoice=?, date=?, amount=?, status=?, by_user=?, hasWhatsapp=? WHERE id=?",
-      [name, invoice, date, amount, status, by_user, hasWhatsapp, req.params.id]
+    await db.execute("UPDATE transactions SET name=?, invoice=?, date=?, amount=?, status=?, by_user=?, hasWhatsapp=? WHERE id=? AND user_id=?",
+      [name, invoice, date, amount, status, by_user, hasWhatsapp, req.params.id, req.user.id]
     );
     res.json({ message: 'Transaction updated' });
   } catch (err) {
@@ -52,7 +55,7 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    await db.execute("DELETE FROM transactions WHERE id=?", [req.params.id]);
+    await db.execute("DELETE FROM transactions WHERE id=? AND user_id=?", [req.params.id, req.user.id]);
     res.json({ message: 'Transaction deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -61,7 +64,7 @@ router.delete('/:id', async (req, res) => {
 
 router.get('/:id/pdf', async (req, res) => {
   try {
-    const [rows] = await db.execute("SELECT * FROM transactions WHERE id=?", [req.params.id]);
+    const [rows] = await db.execute("SELECT * FROM transactions WHERE id=? AND user_id=?", [req.params.id, req.user.id]);
     const tx = rows[0];
     if (!tx) return res.status(404).send('Transaction not found');
     
@@ -114,7 +117,7 @@ router.get('/:id/pdf', async (req, res) => {
 
 router.get('/:id/excel', async (req, res) => {
   try {
-    const [rows] = await db.execute("SELECT * FROM transactions WHERE id=?", [req.params.id]);
+    const [rows] = await db.execute("SELECT * FROM transactions WHERE id=? AND user_id=?", [req.params.id, req.user.id]);
     const tx = rows[0];
     if (!tx) return res.status(404).send('Transaction not found');
     

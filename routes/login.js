@@ -79,9 +79,17 @@ router.post('/signup', async (req, res) => {
       [name, email, hash, 'admin']
     );
 
+    const userId = result.insertId;
+
+    // Create a default company for this user
+    await db.execute(
+      'INSERT INTO company (user_id, name, gst_number, phone, email, address, state, pan, alternate_phone, website, business_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [userId, `${name}'s Company`, '', '', email, '', '', '', '', '', '']
+    );
+
     res.status(201).json({
       message: 'User created successfully',
-      userId: result.insertId
+      userId: userId
     });
   } catch (err) {
     console.error('Signup error:', err);
