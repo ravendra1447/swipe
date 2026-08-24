@@ -31,7 +31,8 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/bank_accounts', require('./routes/bank_accounts'));
 app.use('/api/signatures', require('./routes/signatures'));
 app.use('/api/settings', require('./routes/settings'));
-
+app.use('/api/eway_bills', require('./routes/eway_bills'));
+app.use('/api/einvoices', require('./routes/einvoices'));
 app.get("/", (req, res) => {
   res.send("Swipe backend is running");
 });

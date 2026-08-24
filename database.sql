@@ -103,6 +103,25 @@ CREATE TABLE IF NOT EXISTS gstr1_records (
 );
 
 -- -----------------------------------------------------
+-- Table eway_bills
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS eway_bills (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  billNumber VARCHAR(100),
+  amount DECIMAL(15,2),
+  status VARCHAR(50)
+);
+
+-- -----------------------------------------------------
+-- Table einvoices
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS einvoices (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  invoice_number VARCHAR(100),
+  status VARCHAR(50)
+);
+
+-- -----------------------------------------------------
 -- Table users
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS users (
@@ -201,6 +220,15 @@ INSERT IGNORE INTO gstr1_records (id, gstin, receiver_name, tab_type, date) VALU
 (1, '29ABCDE1234F1Z5', 'Acme Corp', 'B2B', '15-07-2026'),
 (2, '29XYZDE1234F1Z6', 'Globex Inc', 'B2B', '16-07-2026'),
 (3, 'Unregistered', 'John Doe', 'B2CL', '17-07-2026');
+
+INSERT IGNORE INTO eway_bills (id, billNumber, amount, status) VALUES
+(1, '1001', 50000.00, 'Generated'),
+(2, '1002', 125000.00, 'In Transit');
+
+INSERT IGNORE INTO einvoices (id, invoice_number, status) VALUES
+(1, 'INV-2026-001', 'IRN Generated'),
+(2, 'INV-2026-002', 'IRN Generated');
+
 
 -- Password is 'password123' hashed with bcrypt
 INSERT IGNORE INTO users (id, name, email, password, role) VALUES

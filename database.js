@@ -98,6 +98,31 @@ async function initDB() {
       date VARCHAR(100)
     )`);
 
+    await promisePool.query(`CREATE TABLE IF NOT EXISTS document_items (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      document_id INT,
+      document_type VARCHAR(50),
+      sn VARCHAR(10),
+      hsn VARCHAR(50),
+      description VARCHAR(255),
+      qty VARCHAR(50),
+      unit VARCHAR(50),
+      val VARCHAR(50)
+    )`);
+
+    await promisePool.query(`CREATE TABLE IF NOT EXISTS eway_bills (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      billNumber VARCHAR(100),
+      amount DECIMAL(15,2),
+      status VARCHAR(50)
+    )`);
+
+    await promisePool.query(`CREATE TABLE IF NOT EXISTS einvoices (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      invoice_number VARCHAR(100),
+      status VARCHAR(50)
+    )`);
+
     await promisePool.query(`CREATE TABLE IF NOT EXISTS users (
       id INT AUTO_INCREMENT PRIMARY KEY,
       name VARCHAR(255),
@@ -220,6 +245,28 @@ async function initDB() {
           ['29ABCDE1234F1Z5', 'Acme Corp', 'B2B', '15-07-2026'],
           ['29XYZDE1234F1Z6', 'Globex Inc', 'B2B', '16-07-2026'],
           ['Unregistered', 'John Doe', 'B2CL', '17-07-2026']
+        ]
+      ]);
+    }
+
+    const [eways] = await promisePool.query("SELECT COUNT(*) AS count FROM eway_bills");
+    if (eways[0].count === 0) {
+      console.log('Seeding eway_bills...');
+      await promisePool.query("INSERT INTO eway_bills (billNumber, amount, status) VALUES ?", [
+        [
+          ['1001', 50000.00, 'Generated'],
+          ['1002', 125000.00, 'In Transit']
+        ]
+      ]);
+    }
+
+    const [einvs] = await promisePool.query("SELECT COUNT(*) AS count FROM einvoices");
+    if (einvs[0].count === 0) {
+      console.log('Seeding einvoices...');
+      await promisePool.query("INSERT INTO einvoices (invoice_number, status) VALUES ?", [
+        [
+          ['INV-2026-001', 'IRN Generated'],
+          ['INV-2026-002', 'IRN Generated']
         ]
       ]);
     }

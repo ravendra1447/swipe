@@ -66,18 +66,46 @@ router.get('/:id/pdf', async (req, res) => {
     if (!tx) return res.status(404).send('Transaction not found');
     
     const PDFDocument = require('pdfkit');
-    const doc = new PDFDocument();
+    const { generateInvoicePDF } = require('../pdf_generator');
+    
+    const doc = new PDFDocument({ size: 'A4', margin: 0 });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=invoice_${tx.invoice}.pdf`);
     doc.pipe(res);
-    doc.fontSize(25).text('Invoice', { align: 'center' });
-    doc.moveDown();
-    doc.fontSize(16).text(`Invoice No: ${tx.invoice}`);
-    doc.fontSize(14).text(`Date: ${tx.date}`);
-    doc.text(`Customer: ${tx.name}`);
-    doc.moveDown();
-    doc.text(`Total Amount: Rs. ${tx.amount}`);
-    doc.text(`Status: ${tx.status}`);
+    
+    // Map transaction data to the generator
+    const pdfData = {
+      ewbNo: tx.invoice,
+      generatedDate: tx.date,
+      validUntil: '',
+      supplierGSTIN: '09ABCDE1234F1Z5',
+      supplierName: 'Bangkok Mart',
+      recipientGSTIN: '',
+      recipientName: tx.name,
+      placeOfDispatch: '',
+      placeOfDelivery: '',
+      docNo: tx.invoice,
+      docDate: tx.date,
+      docType: 'Tax Invoice',
+      totalValue: tx.amount,
+      hsnCode: '',
+      transportReason: 'Outward - Supply',
+      transactionType: 'Regular',
+      transportMode: '',
+      vehicleNo: '',
+      transporterId: '',
+      transporterName: '',
+      transporterDoc: '',
+      transporterDocDate: '',
+      fromPlace: '',
+      toPlace: '',
+      items: [
+         // Ideally we would fetch items from a transaction_items table, but for now we put a placeholder total
+         { sn: '1', hsn: '', desc: 'Total Transaction Value', qty: '1', unit: 'Pcs', val: tx.amount }
+      ]
+    };
+    
+    generateInvoicePDF(doc, pdfData);
     doc.end();
   } catch (err) {
     res.status(500).json({ error: err.message });
