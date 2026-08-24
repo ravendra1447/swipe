@@ -14,43 +14,6 @@ const pool = mysql.createPool({
 
 const promisePool = pool.promise();
 
-// Mock SQLite API for compatibility
-const db = {
-  get: (sql, params, callback) => {
-    pool.query(sql, params, (err, results) => {
-      if (err) return callback(err);
-      callback(null, results.length > 0 ? results[0] : undefined);
-    });
-  },
-  all: (sql, params, callback) => {
-    pool.query(sql, params, (err, results) => {
-      if (err) return callback(err);
-      callback(null, results);
-    });
-  },
-  run: function(sql, params, callback) {
-    pool.query(sql, params, function(err, results) {
-      if (err) return callback && callback(err);
-      const context = { lastID: results ? results.insertId : null };
-      if (callback) callback.call(context, null);
-    });
-  },
-  // To handle db.serialize which is called in server.js/database.js usually, though we will handle initialization separately
-  serialize: (cb) => { cb(); },
-  prepare: (sql) => {
-    return {
-      run: (...args) => {
-        // Simplified mock, just execute directly
-        // Not used extensively in routes, only in initial seeding
-        pool.query(sql, args, (err) => {
-          if (err) console.error("Prepare run error:", err);
-        });
-      },
-      finalize: () => {}
-    };
-  }
-};
-
 async function initDB() {
   try {
     console.log('Connected to the MySQL database.');
@@ -304,4 +267,4 @@ async function initDB() {
 
 initDB();
 
-module.exports = db;
+module.exports = promisePool;

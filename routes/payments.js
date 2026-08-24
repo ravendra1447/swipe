@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 const db = require('../database');
 
-router.get('/timeline', (req, res) => {
-  db.all("SELECT * FROM payments_timeline ORDER BY id DESC", [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+router.get('/timeline', async (req, res) => {
+  try {
+    const [rows] = await db.execute("SELECT * FROM payments_timeline ORDER BY id DESC");
     
     let received = 0;
     let paid = 0;
@@ -17,36 +17,42 @@ router.get('/timeline', (req, res) => {
       summary: { received, paid, netBalance: received - paid },
       events: rows
     });
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-router.post('/', (req, res) => {
-  const { date, type, amount, reference } = req.body;
-  db.run("INSERT INTO payments_timeline (date, type, amount, reference) VALUES (?, ?, ?, ?)",
-    [date, type, amount, reference],
-    function(err) {
-      if (err) return res.status(500).json({ error: err.message });
-      res.status(201).json({ id: this.lastID });
-    }
-  );
+router.post('/', async (req, res) => {
+  try {
+    const { date, type, amount, reference } = req.body;
+    const [result] = await db.execute("INSERT INTO payments_timeline (date, type, amount, reference) VALUES (?, ?, ?, ?)",
+      [date, type, amount, reference]
+    );
+    res.status(201).json({ id: result.insertId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-router.put('/:id', (req, res) => {
-  const { date, type, amount, reference } = req.body;
-  db.run("UPDATE payments_timeline SET date=?, type=?, amount=?, reference=? WHERE id=?",
-    [date, type, amount, reference, req.params.id],
-    function(err) {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ message: 'Payment updated' });
-    }
-  );
+router.put('/:id', async (req, res) => {
+  try {
+    const { date, type, amount, reference } = req.body;
+    await db.execute("UPDATE payments_timeline SET date=?, type=?, amount=?, reference=? WHERE id=?",
+      [date, type, amount, reference, req.params.id]
+    );
+    res.json({ message: 'Payment updated' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-router.delete('/:id', (req, res) => {
-  db.run("DELETE FROM payments_timeline WHERE id=?", [req.params.id], function(err) {
-    if (err) return res.status(500).json({ error: err.message });
+router.delete('/:id', async (req, res) => {
+  try {
+    await db.execute("DELETE FROM payments_timeline WHERE id=?", [req.params.id]);
     res.json({ message: 'Payment deleted' });
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;

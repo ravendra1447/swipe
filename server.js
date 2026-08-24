@@ -32,6 +32,10 @@ app.use('/api/bank_accounts', require('./routes/bank_accounts'));
 app.use('/api/signatures', require('./routes/signatures'));
 app.use('/api/settings', require('./routes/settings'));
 
+app.get("/", (req, res) => {
+  res.send("Swipe backend is running");
+});
+
 app.listen(port, () => {
   console.log(`Backend server running at http://localhost:${port}`);
 });

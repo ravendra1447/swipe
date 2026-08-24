@@ -10,27 +10,29 @@ const mockAuth = (req, res, next) => {
 };
 
 // GET /profile
-router.get('/', mockAuth, (req, res) => {
-  db.get("SELECT id, name, email, role FROM users WHERE id = ?", [req.userId], (err, row) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(row || {});
-  });
+router.get('/', mockAuth, async (req, res) => {
+  try {
+    const [rows] = await db.execute("SELECT id, name, email, role FROM users WHERE id = ?", [req.userId]);
+    res.json(rows[0] || {});
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // PUT /profile
-router.put('/', mockAuth, (req, res) => {
-  const { name, email, password } = req.body;
-  if (password) {
-    const hash = bcrypt.hashSync(password, 8);
-    db.run("UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?", [name, email, hash, req.userId], function(err) {
-      if (err) return res.status(500).json({ error: err.message });
+router.put('/', mockAuth, async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    if (password) {
+      const hash = await bcrypt.hash(password, 8);
+      await db.execute("UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?", [name, email, hash, req.userId]);
       res.json({ message: 'Profile updated with new password' });
-    });
-  } else {
-    db.run("UPDATE users SET name = ?, email = ? WHERE id = ?", [name, email, req.userId], function(err) {
-      if (err) return res.status(500).json({ error: err.message });
+    } else {
+      await db.execute("UPDATE users SET name = ?, email = ? WHERE id = ?", [name, email, req.userId]);
       res.json({ message: 'Profile updated' });
-    });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
