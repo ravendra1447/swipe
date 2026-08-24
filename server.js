@@ -36,6 +36,10 @@ app.get("/", (req, res) => {
   res.send("Swipe backend is running");
 });
 
+app.get("/api", (req, res) => {
+  res.json({ message: "Swipe API is running perfectly!" });
+});
+
 app.listen(port, () => {
   console.log(`Backend server running at http://localhost:${port}`);
 });

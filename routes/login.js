@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = 'your_jwt_secret_key_here'; // Mock secret
 
 // POST /login
-router.post('/login', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -76,7 +76,7 @@ router.post('/signup', async (req, res) => {
 
     const [result] = await db.execute(
       'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
-      [name, email, hash, 'user']
+      [name, email, hash, 'admin']
     );
 
     res.status(201).json({
