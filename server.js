@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const loginRoutes = require('./routes/login');
@@ -11,7 +12,7 @@ const paymentsRoutes = require('./routes/payments');
 const reportsRoutes = require('./routes/reports');
 
 const app = express();
-const port = 1500;
+const port = process.env.PORT || 1500;
 
 app.use(cors());
 app.use(express.json());
