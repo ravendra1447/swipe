@@ -17,9 +17,10 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, invoice, date, amount, status, by_user, hasWhatsapp, items } = req.body;
+    const params = [req.user.id, name, invoice, date, amount, status, by_user, hasWhatsapp].map(v => v === undefined ? null : v);
     const [result] = await db.execute(
       "INSERT INTO transactions (user_id, name, invoice, date, amount, status, by_user, hasWhatsapp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      [req.user.id, name, invoice, date, amount, status, by_user, hasWhatsapp]
+      params
     );
     
     const transactionId = result.insertId;
@@ -44,8 +45,9 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { name, invoice, date, amount, status, by_user, hasWhatsapp } = req.body;
+    const params = [name, invoice, date, amount, status, by_user, hasWhatsapp, req.params.id, req.user.id].map(v => v === undefined ? null : v);
     await db.execute("UPDATE transactions SET name=?, invoice=?, date=?, amount=?, status=?, by_user=?, hasWhatsapp=? WHERE id=? AND user_id=?",
-      [name, invoice, date, amount, status, by_user, hasWhatsapp, req.params.id, req.user.id]
+      params
     );
     res.json({ message: 'Transaction updated' });
   } catch (err) {

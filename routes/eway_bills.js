@@ -7,7 +7,7 @@ router.use(authenticateToken);
 
 router.get('/', async (req, res) => {
   try {
-    const [results] = await db.execute('SELECT * FROM eway_bills WHERE user_id = ?', [req.user.id]);
+    const [results] = await db.execute('SELECT * FROM eway_bills');
     res.json(results);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -25,14 +25,14 @@ router.post('/', async (req, res) => {
   } = req.body;
 
   const sql = `INSERT INTO eway_bills (
-    user_id, billNumber, amount, status, supplierGSTIN, supplierName, recipientGSTIN, recipientName,
+    billNumber, amount, status, supplierGSTIN, supplierName, recipientGSTIN, recipientName,
     placeOfDispatch, placeOfDelivery, hsnCode, transportReason, transactionType, transportMode,
     vehicleNo, transporterId, transporterName, transporterDoc, transporterDocDate, fromPlace, toPlace,
     docNo, docDate, docType
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
   const values = [
-    req.user.id, billNumber, amount, status, supplierGSTIN||'', supplierName||'', recipientGSTIN||'', recipientName||'',
+    billNumber, amount, status, supplierGSTIN||'', supplierName||'', recipientGSTIN||'', recipientName||'',
     placeOfDispatch||'', placeOfDelivery||'', hsnCode||'', transportReason||'', transactionType||'', transportMode||'',
     vehicleNo||'', transporterId||'', transporterName||'', transporterDoc||'', transporterDocDate||'', fromPlace||'', toPlace||'',
     billNumber, new Date().toLocaleDateString(), 'Tax Invoice'
@@ -43,8 +43,8 @@ router.post('/', async (req, res) => {
     
     if (items && items.length > 0) {
       for (const item of items) {
-        await db.execute(`INSERT INTO document_items (user_id, document_id, document_type, sn, hsn, description, qty, unit, val) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [req.user.id, result.insertId, 'eway_bill', item.sn||'', item.hsn||'', item.desc||'', item.qty||'', item.unit||'', item.val||'']);
+        await db.execute(`INSERT INTO document_items (document_id, document_type, sn, hsn, description, qty, unit, val) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [result.insertId, 'eway_bill', item.sn||'', item.hsn||'', item.desc||'', item.qty||'', item.unit||'', item.val||'']);
       }
     }
 
@@ -58,11 +58,11 @@ module.exports = router;
 
 router.get('/:id/pdf', async (req, res) => {
   try {
-    const [results] = await db.execute('SELECT * FROM eway_bills WHERE id=? AND user_id=?', [req.params.id, req.user.id]);
+    const [results] = await db.execute('SELECT * FROM eway_bills WHERE id=?', [req.params.id]);
     const bill = results[0];
     if (!bill) return res.status(404).send('E-Way bill not found');
 
-    const [itemResults] = await db.execute('SELECT * FROM document_items WHERE document_id=? AND document_type=? AND user_id=?', [bill.id, 'eway_bill', req.user.id]);
+    const [itemResults] = await db.execute('SELECT * FROM document_items WHERE document_id=? AND document_type=?', [bill.id, 'eway_bill']);
     
     const PDFDocument = require('pdfkit');
     const { generateEWayBillPDF } = require('../pdf_generator');

@@ -8,8 +8,8 @@ router.use(authenticateToken);
 router.get('/gstr1', async (req, res) => {
   try {
     const { tab } = req.query;
-    let query = "SELECT * FROM gstr1_records WHERE user_id = ?";
-    let params = [req.user.id];
+    let query = "SELECT * FROM gstr1_records WHERE 1=1";
+    let params = [];
     
     if (tab) {
       query += " AND tab_type = ?";
