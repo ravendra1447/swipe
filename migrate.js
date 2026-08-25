@@ -20,6 +20,7 @@ async function migrate() {
     await connection.execute(`
       CREATE TABLE eway_bills (
         id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT,
         billNumber VARCHAR(100),
         amount DECIMAL(15,2),
         status VARCHAR(50),
@@ -49,6 +50,7 @@ async function migrate() {
     await connection.execute(`
       CREATE TABLE einvoices (
         id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT,
         invoice_number VARCHAR(100),
         amount DECIMAL(15,2),
         status VARCHAR(50),
@@ -78,6 +80,7 @@ async function migrate() {
     await connection.execute(`
       CREATE TABLE document_items (
         id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT,
         document_id INT,
         document_type VARCHAR(50),
         sn VARCHAR(10),

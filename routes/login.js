@@ -4,7 +4,7 @@ const db = require('../database');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = 'your_jwt_secret_key_here'; // Mock secret
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_here';
 
 // POST /login
 router.post('/', async (req, res) => {

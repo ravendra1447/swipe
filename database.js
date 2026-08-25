@@ -18,6 +18,21 @@ async function initDB() {
   try {
     console.log('Connected to the MySQL database.');
 
+    // Attempt to patch existing tables that might be missing user_id
+    const tablesToPatch = [
+      'parties', 'transactions', 'products', 'dashboard_stats', 'product_details', 
+      'payments_timeline', 'gstr1_records', 'document_items', 'eway_bills', 
+      'einvoices', 'company', 'bank_accounts', 'signatures', 'app_settings'
+    ];
+    for (const table of tablesToPatch) {
+      try {
+        await promisePool.query(`ALTER TABLE ${table} ADD COLUMN user_id INT`);
+        console.log(`Patched ${table} with user_id column`);
+      } catch (e) {
+        // Ignore errors (usually Duplicate column name 'user_id' if it already exists)
+      }
+    }
+
     // Create Tables
     await promisePool.query(`CREATE TABLE IF NOT EXISTS parties (
       id INT AUTO_INCREMENT PRIMARY KEY,
