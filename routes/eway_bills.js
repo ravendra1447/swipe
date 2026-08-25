@@ -55,6 +55,10 @@ router.get('/:id/pdf', async (req, res) => {
     const [compRows] = await db.execute("SELECT * FROM company WHERE user_id=? LIMIT 1", [req.user.id]);
     const company = compRows[0] || { name: 'My Company', gst_number: '' };
     
+    // Fetch default bank account
+    const [bankRows] = await db.execute("SELECT * FROM bank_accounts WHERE user_id=? AND is_default=1 LIMIT 1", [req.user.id]);
+    const bank = bankRows[0] || null;
+    
     const pdfData = {
       ewbNo: bill.billNumber,
       generatedDate: bill.docDate,
@@ -82,7 +86,8 @@ router.get('/:id/pdf', async (req, res) => {
       toPlace: bill.toPlace,
       items: itemResults && itemResults.length > 0 ? itemResults.map(i => ({ sn: i.sn, hsn: i.hsn, desc: i.description, qty: i.qty, unit: i.unit, val: i.val })) : [
          { sn: '1', hsn: '', desc: 'Total Value', qty: '1', unit: 'Pcs', val: bill.amount }
-      ]
+      ],
+      bankDetails: bank
     };
     
     generateEWayBillPDF(doc, pdfData);

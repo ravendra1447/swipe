@@ -48,8 +48,10 @@ function generateInvoicePDF(doc, data) {
   let currentY = margins.top;
 
   // Header
-  drawBox(doc, margins.left, currentY, 50, 60, '#000000');
-  drawText(doc, 'Emblem\nLogo', margins.left + 5, currentY + 20, 40, 'center', 8);
+  // Instead of drawing an empty box for the logo, we just add the Ashok Emblem text properly.
+  // Actually, we'll draw a nice styled text block for the National Emblem.
+  drawText(doc, 'SATYAMEV JAYATE', margins.left, currentY + 10, 80, 'center', 7, 'Helvetica-Bold');
+  drawText(doc, '(Emblem)', margins.left, currentY + 20, 80, 'center', 8, 'Helvetica-Oblique');
   drawText(doc, 'Government of India', margins.left, currentY + 5, contentWidth, 'center', 14, 'Helvetica', '#1e5f30');
   drawText(doc, 'Goods and Services Tax', margins.left, currentY + 25, contentWidth, 'center', 12, 'Helvetica', '#1e5f30');
   drawText(doc, 'TAX INVOICE', margins.left, currentY + 45, contentWidth, 'center', 20, 'Helvetica-Bold', '#1e5f30');
@@ -137,6 +139,26 @@ function generateInvoicePDF(doc, data) {
   drawLine(doc, margins.left, tY, margins.left + contentWidth, tY, '#9dbfa6');
   drawText(doc, 'Total', margins.left+cw[2], tY + 5, c3, 'center', 10, 'Helvetica-Bold');
   drawText(doc, runningTotal.toFixed(2), margins.left+cw[5], tY + 5, c6, 'center', 10, 'Helvetica-Bold');
+  
+  tY += 30;
+  
+  // Bank Details Section
+  if (data.bankDetails) {
+    drawText(doc, 'Bank Details:', margins.left, tY, contentWidth, 'left', 10, 'Helvetica-Bold', '#1e5f30');
+    tY += 15;
+    drawText(doc, `Bank Name: ${data.bankDetails.bank_name || '-'}`, margins.left, tY, contentWidth, 'left', 9);
+    tY += 15;
+    drawText(doc, `Account Name: ${data.bankDetails.account_holder_name || '-'}`, margins.left, tY, contentWidth, 'left', 9);
+    tY += 15;
+    drawText(doc, `Account No: ${data.bankDetails.account_no || '-'}`, margins.left, tY, contentWidth, 'left', 9);
+    tY += 15;
+    drawText(doc, `IFSC Code: ${data.bankDetails.ifsc_code || '-'}`, margins.left, tY, contentWidth, 'left', 9);
+    
+    if (data.bankDetails.upi_id) {
+      tY += 15;
+      drawText(doc, `UPI ID: ${data.bankDetails.upi_id}`, margins.left, tY, contentWidth, 'left', 9);
+    }
+  }
 }
 
 
@@ -154,8 +176,8 @@ function generateEWayBillPDF(doc, data) {
   const placeDeliveryDisplay = `${data.placeOfDelivery || ''}, ${data.toPlace || ''}`;
 
   // --- HEADER ---
-  drawBox(doc, margins.left, currentY, 40, 50, '#000');
-  drawText(doc, 'Emblem\nLogo', margins.left + 5, currentY + 15, 30, 'center', 8);
+  drawText(doc, 'SATYAMEV JAYATE', margins.left, currentY + 10, 80, 'center', 7, 'Helvetica-Bold');
+  drawText(doc, '(Emblem)', margins.left, currentY + 20, 80, 'center', 8, 'Helvetica-Oblique');
 
   drawText(doc, 'E-WAY BILL', margins.left, currentY + 10, contentWidth, 'center', 16, 'Helvetica-Bold');
   drawText(doc, 'E WAY BILL SYSTEM', margins.left, currentY + 28, contentWidth, 'center', 10, 'Helvetica');
@@ -255,6 +277,21 @@ function generateEWayBillPDF(doc, data) {
   drawBox(doc, margins.left + (contentWidth / 2) - 80, currentY, 160, 30, '#000');
   drawText(doc, '|| |||||||||||||||| |||||| ||', margins.left, currentY + 10, contentWidth, 'center', 14);
   drawText(doc, data.ewbNo || '-', margins.left, currentY + 35, contentWidth, 'center', 10, 'Helvetica-Bold');
+  
+  currentY += 60;
+  
+  // Bank Details Section
+  if (data.bankDetails) {
+    drawText(doc, 'Bank Details:', margins.left, currentY, contentWidth, 'left', 10, 'Helvetica-Bold', '#555555');
+    currentY += 15;
+    drawText(doc, `Bank Name: ${data.bankDetails.bank_name || '-'}`, margins.left, currentY, contentWidth, 'left', 9);
+    currentY += 15;
+    drawText(doc, `Account Name: ${data.bankDetails.account_holder_name || '-'}`, margins.left, currentY, contentWidth, 'left', 9);
+    currentY += 15;
+    drawText(doc, `Account No: ${data.bankDetails.account_no || '-'}`, margins.left, currentY, contentWidth, 'left', 9);
+    currentY += 15;
+    drawText(doc, `IFSC Code: ${data.bankDetails.ifsc_code || '-'}`, margins.left, currentY, contentWidth, 'left', 9);
+  }
 }
 
 module.exports = {

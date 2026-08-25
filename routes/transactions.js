@@ -74,6 +74,11 @@ router.get('/:id/pdf', async (req, res) => {
     const [compRows] = await db.execute("SELECT * FROM company WHERE user_id=? LIMIT 1", [req.user.id]);
     const company = compRows[0] || { name: 'My Company', gst_number: '' };
     
+    // Fetch default bank account
+    const [bankRows] = await db.execute("SELECT * FROM bank_accounts WHERE user_id=? AND is_default=1 LIMIT 1", [req.user.id]);
+    const bank = bankRows[0] || null;
+
+
     const PDFDocument = require('pdfkit');
     const { generateInvoicePDF } = require('../pdf_generator');
     
@@ -109,9 +114,10 @@ router.get('/:id/pdf', async (req, res) => {
       fromPlace: '',
       toPlace: '',
       items: [
-         // Ideally we would fetch items from a transaction_items table, but for now we put a placeholder total
+         // The frontend doesn't save transaction items, so we put a placeholder total
          { sn: '1', hsn: '', desc: 'Total Transaction Value', qty: '1', unit: 'Pcs', val: tx.amount }
-      ]
+      ],
+      bankDetails: bank
     };
     
     generateInvoicePDF(doc, pdfData);
