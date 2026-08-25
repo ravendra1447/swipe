@@ -224,9 +224,9 @@ async function initDB() {
         [
           [1, 'Adarsh D', '9823664474', 10000.00, 'collect', 'AD', 'pink', 'adarsh@example.com', null, 'Adarsh Enterprises', null, null, 0, 0, 0, null, null, 0, null, null],
           [1, 'AR ENTERPRISES', '', 25587.00, 'pay', 'AE', 'teal', null, '29XYZDE1234F1Z6', 'AR Enterprises', null, null, 0, 0, 0, null, null, 0, null, null],
-          [1, 'Jainam Shah', '8780767186', 763.00, 'pay', 'JS', 'green', null, null, null, null, 0, 0, 0, null, null, 0, null, null],
-          [1, 'Seemith', '8787878754', 8885.00, 'pay', 'S', 'indigo', null, null, null, null, 0, 0, 0, null, null, 0, null, null],
-          [1, 'Vibhav', '4252412211', 0.00, 'none', 'V', 'red', null, null, null, null, 0, 0, 0, null, null, 0, null, null]
+          [1, 'Jainam Shah', '8780767186', 763.00, 'pay', 'JS', 'green', null, null, null, null, null, 0, 0, 0, null, null, 0, null, null],
+          [1, 'Seemith', '8787878754', 8885.00, 'pay', 'S', 'indigo', null, null, null, null, null, 0, 0, 0, null, null, 0, null, null],
+          [1, 'Vibhav', '4252412211', 0.00, 'none', 'V', 'red', null, null, null, null, null, 0, 0, 0, null, null, 0, null, null]
         ]
       ]);
     }

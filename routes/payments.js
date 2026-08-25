@@ -7,7 +7,7 @@ router.use(authenticateToken);
 
 router.get('/timeline', async (req, res) => {
   try {
-    const [rows] = await db.execute("SELECT * FROM payments_timeline ORDER BY id DESC");
+    const [rows] = await db.execute("SELECT * FROM payments_timeline WHERE user_id = ? ORDER BY id DESC", [req.user.id]);
     
     let received = 0;
     let paid = 0;
@@ -28,8 +28,8 @@ router.get('/timeline', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { date, type, amount, reference } = req.body;
-    const [result] = await db.execute("INSERT INTO payments_timeline (date, type, amount, reference) VALUES (?, ?, ?, ?)",
-      [date, type, amount, reference]
+    const [result] = await db.execute("INSERT INTO payments_timeline (user_id, date, type, amount, reference) VALUES (?, ?, ?, ?, ?)",
+      [req.user.id, date, type, amount, reference]
     );
     res.status(201).json({ id: result.insertId });
   } catch (err) {
@@ -40,8 +40,8 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { date, type, amount, reference } = req.body;
-    await db.execute("UPDATE payments_timeline SET date=?, type=?, amount=?, reference=? WHERE id=?",
-      [date, type, amount, reference, req.params.id]
+    await db.execute("UPDATE payments_timeline SET date=?, type=?, amount=?, reference=? WHERE id=? AND user_id=?",
+      [date, type, amount, reference, req.params.id, req.user.id]
     );
     res.json({ message: 'Payment updated' });
   } catch (err) {
@@ -51,7 +51,7 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    await db.execute("DELETE FROM payments_timeline WHERE id=?", [req.params.id]);
+    await db.execute("DELETE FROM payments_timeline WHERE id=? AND user_id=?", [req.params.id, req.user.id]);
     res.json({ message: 'Payment deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });

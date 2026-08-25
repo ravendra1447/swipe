@@ -51,14 +51,18 @@ router.get('/:id/pdf', async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename=eway_bill_${bill.billNumber}.pdf`);
     doc.pipe(res);
     
+    // Fetch the company for this user
+    const [compRows] = await db.execute("SELECT * FROM company WHERE user_id=? LIMIT 1", [req.user.id]);
+    const company = compRows[0] || { name: 'My Company', gst_number: '' };
+    
     const pdfData = {
       ewbNo: bill.billNumber,
       generatedDate: bill.docDate,
       validUntil: '',
-      supplierGSTIN: bill.supplierGSTIN,
-      supplierName: bill.supplierName,
-      recipientGSTIN: bill.recipientGSTIN,
-      recipientName: bill.recipientName,
+      supplierGSTIN: bill.supplierGSTIN || company.gst_number || '',
+      supplierName: bill.supplierName || company.name,
+      recipientGSTIN: bill.recipientGSTIN || '',
+      recipientName: bill.recipientName || 'Recipient',
       placeOfDispatch: bill.placeOfDispatch,
       placeOfDelivery: bill.placeOfDelivery,
       docNo: bill.docNo,
