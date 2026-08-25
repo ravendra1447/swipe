@@ -23,11 +23,9 @@ router.post('/', async (req, res) => {
     const [result] = await db.execute("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)", [name, email, hash, role || 'user']);
     
     if (companyName) {
-      // Assuming a single tenant local setup for now. We update the company record (ID = 1) 
-      // or insert it if it doesn't exist.
       await db.execute(
-        "INSERT INTO company (id, name, gst_number, address, phone) VALUES (1, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = VALUES(name), gst_number = VALUES(gst_number), address = VALUES(address), phone = VALUES(phone)",
-        [companyName, gstin || '', companyAddress || '', companyPhone || '']
+        "INSERT INTO company (user_id, name, gst_number, address, phone) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = VALUES(name), gst_number = VALUES(gst_number), address = VALUES(address), phone = VALUES(phone)",
+        [result.insertId, companyName, gstin || '', companyAddress || '', companyPhone || '']
       );
     }
     

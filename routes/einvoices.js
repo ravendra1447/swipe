@@ -7,7 +7,7 @@ router.use(authenticateToken);
 
 router.get('/', async (req, res) => {
   try {
-    const [results] = await db.execute('SELECT * FROM einvoices');
+    const [results] = await db.execute('SELECT * FROM einvoices WHERE user_id = ?', [req.user.id]);
     res.json(results);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -17,8 +17,8 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { invoice_number, status } = req.body;
-    const sql = 'INSERT INTO einvoices (invoice_number, status) VALUES (?, ?)';
-    const [result] = await db.execute(sql, [invoice_number, status]);
+    const sql = 'INSERT INTO einvoices (user_id, invoice_number, status) VALUES (?, ?, ?)';
+    const [result] = await db.execute(sql, [req.user.id, invoice_number, status]);
     res.status(201).json({ id: result.insertId, invoice_number, status });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -27,7 +27,7 @@ router.post('/', async (req, res) => {
 
 router.get('/:id/pdf', async (req, res) => {
   try {
-    const [results] = await db.execute('SELECT * FROM einvoices WHERE id=?', [req.params.id]);
+    const [results] = await db.execute('SELECT * FROM einvoices WHERE id=? AND user_id=?', [req.params.id, req.user.id]);
     const bill = results[0];
     if (!bill) return res.status(404).send('E-Invoice not found');
     
@@ -39,12 +39,16 @@ router.get('/:id/pdf', async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename=einvoice_${bill.invoice_number}.pdf`);
     doc.pipe(res);
     
+    // Fetch the company for this user
+    const [compRows] = await db.execute("SELECT * FROM company WHERE user_id=? LIMIT 1", [req.user.id]);
+    const company = compRows[0] || { name: 'My Company', gst_number: '' };
+    
     const pdfData = {
       ewbNo: bill.invoice_number,
       generatedDate: new Date().toLocaleDateString(),
       validUntil: '',
-      supplierGSTIN: '09ABCDE1234F1Z5',
-      supplierName: 'Bangkok Mart',
+      supplierGSTIN: company.gst_number || '',
+      supplierName: company.name,
       recipientGSTIN: '',
       recipientName: 'Customer',
       placeOfDispatch: '',

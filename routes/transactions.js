@@ -70,6 +70,10 @@ router.get('/:id/pdf', async (req, res) => {
     const tx = rows[0];
     if (!tx) return res.status(404).send('Transaction not found');
     
+    // Fetch the company for this user
+    const [compRows] = await db.execute("SELECT * FROM company WHERE user_id=? LIMIT 1", [req.user.id]);
+    const company = compRows[0] || { name: 'My Company', gst_number: '' };
+    
     const PDFDocument = require('pdfkit');
     const { generateInvoicePDF } = require('../pdf_generator');
     
@@ -83,8 +87,8 @@ router.get('/:id/pdf', async (req, res) => {
       ewbNo: tx.invoice,
       generatedDate: tx.date,
       validUntil: '',
-      supplierGSTIN: '09ABCDE1234F1Z5',
-      supplierName: 'Bangkok Mart',
+      supplierGSTIN: company.gst_number || '',
+      supplierName: company.name,
       recipientGSTIN: '',
       recipientName: tx.name,
       placeOfDispatch: '',

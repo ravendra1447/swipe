@@ -7,7 +7,7 @@ router.use(authenticateToken);
 
 router.get('/', async (req, res) => {
   try {
-    const [results] = await db.execute('SELECT * FROM eway_bills');
+    const [results] = await db.execute('SELECT * FROM eway_bills WHERE user_id = ?', [req.user.id]);
     res.json(results);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -20,11 +20,11 @@ router.post('/', async (req, res) => {
   } = req.body;
 
   const sql = `INSERT INTO eway_bills (
-    billNumber, amount, status
-  ) VALUES (?, ?, ?)`;
+    user_id, billNumber, amount, status
+  ) VALUES (?, ?, ?, ?)`;
 
   const values = [
-    billNumber, amount, status
+    req.user.id, billNumber, amount, status
   ];
 
   try {
@@ -37,7 +37,7 @@ router.post('/', async (req, res) => {
 
 router.get('/:id/pdf', async (req, res) => {
   try {
-    const [results] = await db.execute('SELECT * FROM eway_bills WHERE id=?', [req.params.id]);
+    const [results] = await db.execute('SELECT * FROM eway_bills WHERE id=? AND user_id=?', [req.params.id, req.user.id]);
     const bill = results[0];
     if (!bill) return res.status(404).send('E-Way bill not found');
 

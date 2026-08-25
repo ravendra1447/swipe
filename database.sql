@@ -137,6 +137,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS company (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT,
   name VARCHAR(255),
   logo TEXT,
   phone VARCHAR(50),

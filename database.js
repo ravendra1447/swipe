@@ -31,6 +31,11 @@ async function initDB() {
       } catch (e) {
         // Ignore errors (usually Duplicate column name 'user_id' if it already exists)
       }
+      
+      // Assign existing records to user 1 if user_id is null
+      try {
+        await promisePool.query(`UPDATE ${table} SET user_id = 1 WHERE user_id IS NULL`);
+      } catch (err) {}
     }
 
     // Create Tables
