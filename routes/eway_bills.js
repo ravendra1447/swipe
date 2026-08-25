@@ -35,8 +35,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-module.exports = router;
-
 router.get('/:id/pdf', async (req, res) => {
   try {
     const [results] = await db.execute('SELECT * FROM eway_bills WHERE id=?', [req.params.id]);
@@ -89,3 +87,5 @@ router.get('/:id/pdf', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+module.exports = router;
