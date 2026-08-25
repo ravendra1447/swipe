@@ -16,38 +16,19 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   const { 
-    billNumber, amount, status,
-    supplierGSTIN, supplierName, recipientGSTIN, recipientName,
-    placeOfDispatch, placeOfDelivery, hsnCode, transportReason,
-    transactionType, transportMode, vehicleNo, transporterId,
-    transporterName, transporterDoc, transporterDocDate, fromPlace, toPlace,
-    items 
+    billNumber, amount, status
   } = req.body;
 
   const sql = `INSERT INTO eway_bills (
-    billNumber, amount, status, supplierGSTIN, supplierName, recipientGSTIN, recipientName,
-    placeOfDispatch, placeOfDelivery, hsnCode, transportReason, transactionType, transportMode,
-    vehicleNo, transporterId, transporterName, transporterDoc, transporterDocDate, fromPlace, toPlace,
-    docNo, docDate, docType
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    billNumber, amount, status
+  ) VALUES (?, ?, ?)`;
 
   const values = [
-    billNumber, amount, status, supplierGSTIN||'', supplierName||'', recipientGSTIN||'', recipientName||'',
-    placeOfDispatch||'', placeOfDelivery||'', hsnCode||'', transportReason||'', transactionType||'', transportMode||'',
-    vehicleNo||'', transporterId||'', transporterName||'', transporterDoc||'', transporterDocDate||'', fromPlace||'', toPlace||'',
-    billNumber, new Date().toLocaleDateString(), 'Tax Invoice'
+    billNumber, amount, status
   ];
 
   try {
     const [result] = await db.execute(sql, values);
-    
-    if (items && items.length > 0) {
-      for (const item of items) {
-        await db.execute(`INSERT INTO document_items (document_id, document_type, sn, hsn, description, qty, unit, val) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [result.insertId, 'eway_bill', item.sn||'', item.hsn||'', item.desc||'', item.qty||'', item.unit||'', item.val||'']);
-      }
-    }
-
     res.status(201).json({ id: result.insertId, billNumber, amount, status });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -62,7 +43,7 @@ router.get('/:id/pdf', async (req, res) => {
     const bill = results[0];
     if (!bill) return res.status(404).send('E-Way bill not found');
 
-    const [itemResults] = await db.execute('SELECT * FROM document_items WHERE document_id=? AND document_type=?', [bill.id, 'eway_bill']);
+    const itemResults = []; // Table document_items does not exist in DB
     
     const PDFDocument = require('pdfkit');
     const { generateEWayBillPDF } = require('../pdf_generator');
